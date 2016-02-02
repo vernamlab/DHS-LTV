@@ -1,0 +1,6 @@
+1. This library can be complied with ntl-9.0.2 and gmp-6.0.0 pre-installed.
+	Check: http://www.shoup.net/ntl/ and https://gmplib.org/
+2. This library is designed to be used on Linux systems. It is not tested on a Windows platform.
+3. For the details of the parameter selection process (parameters are declared in def.h and should be manually changed depending on the application), please see the paper : https://eprint.iacr.org/2015/274.pdf
+	
+	

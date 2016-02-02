@@ -1,0 +1,2 @@
+all:
+    g++ main.cpp general.cpp homlib.cpp ntt.cpp -o main -O3 -lntl -lgmp

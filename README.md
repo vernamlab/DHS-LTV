@@ -8,7 +8,7 @@ Our library implements SHE and leveled-FHE versions of the same scheme. We will 
 
 # Applications
 
-Using the core homomorphic cryptosystem, we have built several applications. Examples include encrypted computation of cryptographic protocols such as AES, Prince Cipher, as well as more practical applications like PIR, Sorting Encrypted Data, Arithmetic over Encrypted Data and encrypted keyword search/completion. Sorting application is already available can be seen in applications folder, the other source codes will be avaliabe soon. All of these projects were developed for research purpose only, therefore although they provide maximum efficiency, they lack a clean user interface for now. A tutorial document is in progress. The links for the mentioned applications:
+Using the core homomorphic cryptosystem, we have built several applications. Examples include encrypted computation of cryptographic protocols such as AES, Prince Cipher, as well as more practical applications like PIR, Sorting Encrypted Data, Arithmetic over Encrypted Data and encrypted keyword search/completion. Sorting application is already available can be seen in applications folder, the other source codes will be avaliabe soon. All of these projects were developed for research purpose only, therefore although they provide maximum efficiency, some parts may lack a clean user interface for now. A tutorial document is in progress. The links for the mentioned applications:
   1. PIR      :https://eprint.iacr.org/2014/232.pdf
   2. PRINCE   :https://eprint.iacr.org/2014/233.pdf
   3. SORTING  :https://eprint.iacr.org/2015/274.pdf

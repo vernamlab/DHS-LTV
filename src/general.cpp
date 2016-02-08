@@ -90,17 +90,21 @@ void CipherText::coeff_reduce(const ZZ &mod)
 {
     CoeffReduce(ct_, ct_, mod);
 }
-void CipherText::poly_reduce(RingType type, const ZZX &mod)
+/*void CipherText::poly_reduce(RingType type, const ZZX &mod)
 {
     PolyReduce(ct_, ct_, type, mod);
-}
+}*/
+//void CipherText::poly_reduce(ReductionType type, const ZZX &mod, const vec_ZZX &helpers)
+//{
+
+//}
 
 GlobalParams::GlobalParams()
 {
     set_l(1);   // Circuit Level
     set_hom_type(she);
     set_reduc_type(yarkin);
-    Init(cyclotomic, off, 2, 8191);
+    Init(cyclotomic, off, 2, 257);
 }
 
 GlobalParams::GlobalParams(RingType type, BatchFlag flag, int p, int degree)

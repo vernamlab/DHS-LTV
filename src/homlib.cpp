@@ -320,7 +320,8 @@ homer_.ShowTime("Relin");
 void Crypto::Refresh(CipherText &ct)
 {
 homer_.Start();
-    ct.poly_reduce(gp_->ring_type(), r_.poly_);
+    //ct.poly_reduce(gp_->ring_type(), r_.poly_);
+    PolyReduction(ct);
     if(gp_->hom_type() == fhe)
         Relin(ct);
     ModSwitch(ct);
@@ -348,9 +349,11 @@ void Crypto::PolyReduction(ZZX &out, const ZZX &in, ReductionType type)
     out.normalize();
 }
 
-void Crypto::PolyReduction(ZZX &out, const ZZX &in)
+void Crypto::PolyReduction(CipherText &ct)
 {
-    PolyReduction(out, in, gp_->reduc_type());
+    ZZX temp = ct.ct();
+    PolyReduction(temp, temp, gp_->reduc_type());
+    ct.set_ct(temp);
 }
 
 void Crypto::Add(CipherText &out, CipherText &in1, CipherText &in2)
@@ -358,10 +361,12 @@ void Crypto::Add(CipherText &out, CipherText &in1, CipherText &in2)
     if(!in1.fresh())
     {
         if(in2.fresh())
-            in1.poly_reduce(gp_->ring_type(), r_.poly_);
+            //in1.poly_reduce(gp_->ring_type(), r_.poly_);
+            PolyReduction(in1);
     }
     else if(!in2.fresh())
-        in2.poly_reduce(gp_->ring_type(), r_.poly_);
+        //in2.poly_reduce(gp_->ring_type(), r_.poly_);
+        PolyReduction(in2);
 
     out = in1 + in2;
 

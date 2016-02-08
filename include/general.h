@@ -106,7 +106,8 @@ public:
             void    set_d(const ZZ &d){d_ = d;};
 
             void    coeff_reduce(const ZZ &mod);
-            void    poly_reduce(RingType type, const ZZX &mod);
+            //void    poly_reduce(RingType type, const ZZX &mod);
+            //void    poly_reduce(ReductionType type, const ZZX &mod, const vec_ZZX &helpers);
 
 private:
             ZZX ct_;

@@ -50,8 +50,9 @@ public:
         void    TimerStart(){homer_.Start();};
         void    TimerStop(){homer_.Stop(); homer_.ShowTime("Time ");};
 
-        void    PolyReduction(CipherText &out, const CipherText &in);
-        void    PolyReduction(ZZX &out, const ZZX &in);
+        //void    PolyReduction(CipherText &out, const CipherText &in);
+        void    PolyReduction(CipherText &ct);
+        //void    PolyReduction(ZZX &out, const ZZX &in);
 
 
 

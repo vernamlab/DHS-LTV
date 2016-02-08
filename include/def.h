@@ -2,8 +2,8 @@
 #define DEF_H_
 
 // HOMOMORPHIC TYPE
-#define SHE_
-//#define FHE_
+//#define SHE_
+#define FHE_
 
 // APPLICATION PARAMS
 #define P_ 2                            // Message Space Z_p
@@ -25,6 +25,7 @@
 #define DELTA_ 1.0066                   // Hermite Factor needs to be smaller than this value
                                         // 1.0066 achieves 80-bit security
                                         // Hermite Factor = pow(2, (log(q_{0})-4)/(4*N)) < 1.0066
+
 
 
 

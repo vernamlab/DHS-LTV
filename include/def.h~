@@ -1,5 +1,4 @@
 #ifndef DEF_H_
-<<<<<<< HEAD
 #define DEF_H_
 
 // HOMOMORPHIC TYPE
@@ -29,8 +28,5 @@
 
 =======
 #define DEF_H
-
-#define DEPTH_ 1
->>>>>>> db3f29442fdadf88ba8fcc36f9556f26e205e732
 
 #endif // DEF_H_

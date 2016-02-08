@@ -2,6 +2,7 @@
 #define HOMLIB_H_
 
 #include "general.h"
+#include "ciphertext.h"
 
 using namespace std;
 using namespace NTL;

@@ -19,92 +19,18 @@ typedef struct{
 	int r;  // fact cnt n = d.r, slot count
 }GlobalParam;
 */
-
-// Operator Overloads
-CipherText& CipherText::operator=(const CipherText& rhs)
-{
-    if(this != &rhs) // If its not a self assignment
-    {
-        ct_ = rhs.ct();
-        level_ = rhs.level();
-        fresh_ = rhs.fresh();
-        multcnt_ = rhs.multcnt();
-    }
-    return *this;
-}
-CipherText& CipherText::operator+=(const CipherText& rhs)
-{
-    set_ct(ct()+rhs.ct());
-    return *this;
-}
-const CipherText CipherText::operator+(const CipherText& rhs) const
-{
-    CipherText ct;
-    ct = *this;
-    ct += rhs;
-    return ct;
-}
-CipherText& CipherText::operator-=(const CipherText& rhs)
-{
-    set_ct(ct()-rhs.ct());
-    return *this;
-}
-const CipherText CipherText::operator-(const CipherText& rhs) const
-{
-    CipherText ct;
-    ct = *this;
-    ct -= rhs;
-    return ct;
-}
-CipherText& CipherText::operator+=(const ZZ& rhs)
-{
-    set_ct(ct()+rhs);
-    return *this;
-}
-const CipherText CipherText::operator+(const ZZ& rhs) const
-{
-    CipherText ct;
-    ct = *this;
-    ct += rhs;
-    return ct;
-}
-CipherText& CipherText::operator*=(const ZZ& rhs)
-{
-    set_ct(ct()*rhs);
-    return *this;
-}
-const CipherText CipherText::operator*(const ZZ& rhs) const
-{
-    CipherText ct;
-    ct = *this;
-    ct *= rhs;
-    return ct;
-}
-std::ostream& operator<<(std::ostream& os, const CipherText& ct)
-{
-    os  << ct.ct();
-    return os;
-}
-
-void CipherText::coeff_reduce(const ZZ &mod)
-{
-    CoeffReduce(ct_, ct_, mod);
-}
-/*void CipherText::poly_reduce(RingType type, const ZZX &mod)
-{
-    PolyReduce(ct_, ct_, type, mod);
-}*/
-//void CipherText::poly_reduce(ReductionType type, const ZZX &mod, const vec_ZZX &helpers)
-//{
-
-//}
-
+/*
 GlobalParams::GlobalParams()
 {
     set_l(1);   // Circuit Level
-    set_hom_type(she);
+    set_hom_type(fhe);
     set_reduc_type(yarkin);
     Init(cyclotomic, off, 2, 257);
+}
+*/
+GlobalParams::GlobalParams()
+{
+
 }
 
 GlobalParams::GlobalParams(RingType type, BatchFlag flag, int p, int degree)
@@ -150,7 +76,7 @@ void GlobalParams::Init(RingType type, BatchFlag flag, int p, int degree)
 
     // Security Params
     set_b(1);
-    set_k(100); // (w*2)*(l+1)
+    set_k(22); // (w*2)*(l+1)
 
     if(hom_type_ == fhe)
         set_i(k_);
@@ -164,7 +90,7 @@ void GlobalParams::Init(RingType type, BatchFlag flag, int p, int degree)
     else
         set_r(1);
 
-    set_w(20);   // How many bits of secret key will be encrypted
+    set_w(5);   // How many bits of secret key will be encrypted
 }
 
 /*

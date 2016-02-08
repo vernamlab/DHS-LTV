@@ -26,7 +26,4 @@
                                         // 1.0066 achieves 80-bit security
                                         // Hermite Factor = pow(2, (log(q_{0})-4)/(4*N)) < 1.0066
 
-=======
-#define DEF_H
-
 #endif // DEF_H_

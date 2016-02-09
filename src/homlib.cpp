@@ -1,6 +1,6 @@
 #include "homlib.h"
 
-Crypto::Crypto()
+LaSH::LaSH()
 {
     gp_ = NULL;
     //fft_ek_ = NULL;
@@ -22,7 +22,7 @@ homer_.Start();
 homer_.Stop();
 homer_.ShowTime("Key Setup");
 }
-Crypto::~Crypto()
+LaSH::~LaSH()
 {
     if(gp_ != NULL)
         delete gp_;
@@ -42,12 +42,12 @@ Crypto::~Crypto()
 
 }
 
-void Crypto::ParamSetup()
+void LaSH::ParamSetup()
 {
     // Setup gp_
     gp_ = new GlobalParams();
 }
-void Crypto::RingSetup()
+void LaSH::RingSetup()
 {
     // Setup r_
 
@@ -111,7 +111,7 @@ void Crypto::RingSetup()
         reduction_helpers_[0] /= mod;
     }
 }
-void Crypto::KeySetup()
+void LaSH::KeySetup()
 {
     if(gp_->hom_type() == fhe)
     {
@@ -169,7 +169,7 @@ void Crypto::KeySetup()
     }
 }
 
-void Crypto::ComputeFFTek(int level)
+void LaSH::ComputeFFTek(int level)
 {
     int cnt = ek_.length();             // leftblocks or word_blocksize or num_add
     int bits =  cnt * gp_->w();         // max_bitsize
@@ -201,11 +201,11 @@ void Crypto::ComputeFFTek(int level)
     }
 }
 
-void Crypto::Encrypt(CipherText &out, const ZZX &in)
+void LaSH::Encrypt(CipherText &out, const ZZX &in)
 {
     Encrypt(out, in, 0);
 }
-void Crypto::Encrypt(CipherText &out, const ZZX &in, int index)
+void LaSH::Encrypt(CipherText &out, const ZZX &in, int index)
 {
     out.set_fresh(true);
     out.set_level(index);
@@ -215,7 +215,7 @@ void Crypto::Encrypt(CipherText &out, const ZZX &in, int index)
     encrypt(temp, in, index);
     out.set_ct(temp);
 }
-void Crypto::Decrypt(ZZX &out, CipherText &in)
+void LaSH::Decrypt(ZZX &out, CipherText &in)
 {
     in.coeff_reduce(r_.q_[in.level()]);
     if(!in.fresh())
@@ -223,7 +223,7 @@ void Crypto::Decrypt(ZZX &out, CipherText &in)
 
     decrypt(out, in.ct(), in.d(), in.multcnt(), in.level());
 }
-void Crypto::ModSwitch(CipherText &ct)
+void LaSH::ModSwitch(CipherText &ct)
 {
 homer_.Start();
     ZZX temp1, temp2;
@@ -240,7 +240,7 @@ homer_.ShowTime("ModSwitch");
 }
 
 
-void Crypto::Relin(CipherText &c)
+void LaSH::Relin(CipherText &c)
 {
 homer_.Start();
     int cnt = ek_.length() - c.level()*(gp_->k()/gp_->w());
@@ -263,7 +263,7 @@ homer_.ShowTime("Relin");
 
 
 /*
-void Crypto::Relin(CipherText &c)
+void LaSH::Relin(CipherText &c)
 {
 homer_.Start();
 
@@ -317,7 +317,7 @@ homer_.ShowTime("Relin");
 }
 */
 
-void Crypto::Refresh(CipherText &ct)
+void LaSH::Refresh(CipherText &ct)
 {
 homer_.Start();
     //ct.poly_reduce(gp_->ring_type(), r_.poly_);
@@ -330,7 +330,7 @@ homer_.Stop();
 homer_.ShowTime("Refresh");
 }
 
-void Crypto::PolyReduction(ZZX &out, const ZZX &in, ReductionType type)
+void LaSH::PolyReduction(ZZX &out, const ZZX &in, ReductionType type)
 {
     if(type == yarkin)
     {
@@ -349,14 +349,14 @@ void Crypto::PolyReduction(ZZX &out, const ZZX &in, ReductionType type)
     out.normalize();
 }
 
-void Crypto::PolyReduction(CipherText &ct)
+void LaSH::PolyReduction(CipherText &ct)
 {
     ZZX temp = ct.ct();
     PolyReduction(temp, temp, gp_->reduc_type());
     ct.set_ct(temp);
 }
 
-void Crypto::Add(CipherText &out, CipherText &in1, CipherText &in2)
+void LaSH::Add(CipherText &out, CipherText &in1, CipherText &in2)
 {
     if(!in1.fresh())
     {
@@ -379,7 +379,7 @@ void Crypto::Add(CipherText &out, CipherText &in1, CipherText &in2)
 }
 
 
-void Crypto::Mult(CipherText &out, CipherText &in1, CipherText &in2)
+void LaSH::Mult(CipherText &out, CipherText &in1, CipherText &in2)
 {
     if(!in1.fresh())
         Refresh(in1);
@@ -409,7 +409,7 @@ homer_.Stop();
 homer_.ShowTime("Mult Time");
 }
 
-void Crypto::Div(CipherText &out, const CipherText &in, const ZZ &d)
+void LaSH::Div(CipherText &out, const CipherText &in, const ZZ &d)
 {
     int level = in.level();
     ZZ temp = InvMod(d, r_.q_[level]);
@@ -419,17 +419,17 @@ void Crypto::Div(CipherText &out, const CipherText &in, const ZZ &d)
 }
 
 
-CipherText& Crypto::Mult(CipherText &in1, CipherText &in2)
+CipherText& LaSH::Mult(CipherText &in1, CipherText &in2)
 {
     Mult(in1, in1, in2);
     return in1;
 }
-CipherText& Crypto::Add(CipherText &in1, CipherText &in2)
+CipherText& LaSH::Add(CipherText &in1, CipherText &in2)
 {
     Add(in1, in1, in2);
     return in1;
 }
-CipherText& Crypto::Div(CipherText &in, const ZZ &d)
+CipherText& LaSH::Div(CipherText &in, const ZZ &d)
 {
     Div(in, in, d);
     return in;
@@ -440,11 +440,11 @@ CipherText& Crypto::Div(CipherText &in, const ZZ &d)
 // CIRCUITS
 //////////////
 
-void Crypto::Circuit_ZeroTest(CipherText &out, const CipherText &in)
+void LaSH::Circuit_ZeroTest(CipherText &out, const CipherText &in)
 {
 
 }
-void Crypto::Circuit_EqualityCheck(CipherText &out, const CipherText &in1, const CipherText &in2)
+void LaSH::Circuit_EqualityCheck(CipherText &out, const CipherText &in1, const CipherText &in2)
 {
     out = in1 - in2;
     out.coeff_reduce(r_.q_[out.level()]);
@@ -453,14 +453,14 @@ void Crypto::Circuit_EqualityCheck(CipherText &out, const CipherText &in1, const
 //////////////
 //////////////
 
-void Crypto::FindSecretKey()
+void LaSH::FindSecretKey()
 {
     RandPolyBalanced(f_[0], gp_->n(), gp_->b());
     f_[0] *= gp_->p();
     f_[0] += 1;
     CoeffReduce(f_[0], f_[0], r_.q_[0]);
 }
-void Crypto::FindPublicKey(const ZZX &f_inv)
+void LaSH::FindPublicKey(const ZZX &f_inv)
 {
     RandPolyBalanced(h_, gp_->n(), gp_->b());
     h_ *= f_inv;
@@ -468,7 +468,7 @@ void Crypto::FindPublicKey(const ZZX &f_inv)
     PolyCoeffReduce(h_, h_, gp_->ring_type(), r_.poly_, r_.q_[0]);
 }
 
-void Crypto::encrypt(ZZX &out, const ZZX &in, int index)
+void LaSH::encrypt(ZZX &out, const ZZX &in, int index)
 {
 homer_.Start();
     ZZX s, e;
@@ -480,7 +480,7 @@ homer_.Start();
 homer_.Stop();
 homer_.ShowTime("Encrypt");
 }
-void Crypto::decrypt(ZZX &out, const ZZX &in, const ZZ &divisor, int index, int level)
+void LaSH::decrypt(ZZX &out, const ZZX &in, const ZZ &divisor, int index, int level)
 {
 homer_.Start();
     out = in * f_[index];

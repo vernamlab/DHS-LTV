@@ -6,11 +6,11 @@
 class Params
 {
     public:
-        Params(){delta_ = DELTA; n_ = N; logq_ = SIGMA; hermite_ = 100;};
-        virtual ~Params();
+        Params(double delta, int degree, int qsize);
+        virtual ~Params(){};
 
-        double  ComputeHermite(){hermite_ = pow(2, (logq_-4)/(4*n_)); return hermite_;};
-        bool    CheckSecurity(){return (hermite_ < delta_);};
+        double  ComputeHermite();
+        bool    CheckSecurity();
         bool    CheckNoiseGrowth();
     protected:
     private:

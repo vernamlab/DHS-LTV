@@ -7,18 +7,18 @@ using namespace NTL;
 
 int main()
 {
-    Crypto C;
+    LaSH L;
 
     ZZX m, b;
 
     CipherText c, result;
 
     m = 1;
-    C.Encrypt(c, m);
+    L.Encrypt(c, m);
 
-    C.Mult(c, c);
+    L.Mult(c, c);
 
-    C.Decrypt(b, c);
+    L.Decrypt(b, c);
     cout << b << endl;
 
 

@@ -8,12 +8,12 @@ using namespace std;
 using namespace NTL;
 
 
-class Crypto{
+class LaSH{
 public:
 
 ///////////////////////////////////////////////////////////////////////////////
-        Crypto();
-        ~Crypto();
+        LaSH();
+        ~LaSH();
 
         //void    ParamSetup();
         //void    KeySetup();

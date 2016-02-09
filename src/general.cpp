@@ -19,20 +19,21 @@ typedef struct{
 	int r;  // fact cnt n = d.r, slot count
 }GlobalParam;
 */
-/*
+
 GlobalParams::GlobalParams()
 {
     set_l(1);   // Circuit Level
-    set_hom_type(fhe);
+    set_hom_type(she);
     set_reduc_type(yarkin);
     Init(cyclotomic, off, 2, 257);
 }
-*/
+
+/*
 GlobalParams::GlobalParams()
 {
 
 }
-
+*/
 GlobalParams::GlobalParams(RingType type, BatchFlag flag, int p, int degree)
 {
     Init(type, flag, p, degree);

@@ -7,6 +7,7 @@ using namespace NTL;
 
 int main()
 {
+
     LaSH L;
 
     ZZX m, b;
@@ -20,7 +21,6 @@ int main()
 
     L.Decrypt(b, c);
     cout << b << endl;
-
 
     return 0;
 }

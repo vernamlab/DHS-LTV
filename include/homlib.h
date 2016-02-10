@@ -3,6 +3,7 @@
 
 #include "general.h"
 #include "ciphertext.h"
+#include "params.h"
 
 using namespace std;
 using namespace NTL;
@@ -15,15 +16,12 @@ public:
         LaSH();
         ~LaSH();
 
-        //void    ParamSetup();
-        //void    KeySetup();
-
         const ZZX&      GetSecretKey(int index)const {return f_[index];};
         const ZZX&      GetPublicKey()const {return h_;};
         const ZZX&      GetPolyModulus()const {return r_.poly_;};
         const vec_ZZX&  GetReductionHelpers()const {return reduction_helpers_;};
         const ZZ&       GetCoeffModulus(int index)const {return r_.q_[index];};
-        const ZZ&       GetMessageModulus()const {return to_ZZ(gp_->p());};
+        const ZZ&       GetMessageModulus()const {return to_ZZ(gp_->pi());};
         RingType        GetRingType()const {return gp_->ring_type();};
 
 
@@ -49,11 +47,9 @@ public:
         void    Circuit_EqualityCheck(CipherText &out, const CipherText &in1, const CipherText &in2);
 
         void    TimerStart(){homer_.Start();};
-        void    TimerStop(){homer_.Stop(); homer_.ShowTime("Time ");};
+        void    TimerStop(){homer_.Stop(); homer_.ShowTime("Total Time ");};
 
-        //void    PolyReduction(CipherText &out, const CipherText &in);
         void    PolyReduction(CipherText &ct);
-        //void    PolyReduction(ZZX &out, const ZZX &in);
 
 
 
@@ -63,7 +59,8 @@ private:
         vec_ZZX         f_, ek_;		// list of public (h), secret (f), and evaluation (ek) keys for each level
         FFTEvalKey      fft_ek_;
         //fftRep          ek_fft_;
-        GlobalParams     *gp_;
+        //GlobalParams     *gp_;
+        Params          *gp_;
         Ring            r_;
         vec_ZZX         reduction_helpers_;
         myTimer         homer_;
@@ -83,7 +80,6 @@ private:
 		void	decrypt(ZZX &out, const ZZX &in, const ZZ &divisor, int index, int level);
 
 		void    PolyReduction(ZZX &out, const ZZX &in, ReductionType type);
-
 };
 
 #endif /* HOMLIB_H_ */

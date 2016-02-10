@@ -7,20 +7,20 @@ LaSH::LaSH()
     srand(time(NULL));
 	SetSeed(to_ZZ(time(NULL)));
 
-homer_.Start();
+//homer_.Start();
     ParamSetup();
-homer_.Stop();
-homer_.ShowTime("Param Setup");
+//homer_.Stop();
+//homer_.ShowTime("Param Setup");
 
-homer_.Start();
+//homer_.Start();
     RingSetup();
-homer_.Stop();
-homer_.ShowTime("Ring Setup");
+//homer_.Stop();
+//homer_.ShowTime("Ring Setup");
 
-homer_.Start();
+//homer_.Start();
     KeySetup();
-homer_.Stop();
-homer_.ShowTime("Key Setup");
+//homer_.Stop();
+//homer_.ShowTime("Key Setup");
 }
 LaSH::~LaSH()
 {
@@ -44,45 +44,55 @@ LaSH::~LaSH()
 
 void LaSH::ParamSetup()
 {
+#ifdef TIMING_INFO
+    homer_.Start();
+#endif // TIMING_INFO
     // Setup gp_
-    gp_ = new GlobalParams();
+    gp_ = new Params;
+#ifdef TIMING_INFO
+    homer_.Stop();
+    homer_.ShowTime("Param Setup");
+#endif // TIMING_INFO
 }
 void LaSH::RingSetup()
 {
+#ifdef TIMING_INFO
+    homer_.Start();
+#endif // TIMING_INFO
     // Setup r_
 
     // 1. Poly Modulus, F(x)
     if(gp_->ring_type() == cyclotomic)
-        CyclotomicPoly(r_.poly_, gp_->m());
+        CyclotomicPoly(r_.poly_, gp_->mu());
     else
-        XN_1(r_.poly_, gp_->n());
+        XN_1(r_.poly_, gp_->nu());
 
     // 2. Coeff modulus for each level, q_i
-    r_.q_.SetLength(gp_->l()+1);
+    r_.q_.SetLength(gp_->depth()+1);
 
 	ZZ temp;
-	GenPrime(temp, gp_->i());
-	while(temp%gp_->p() != 1)
-        GenPrime(temp, gp_->i());
+	GenPrime(temp, gp_->lambda());
+	while(temp%gp_->pi() != 1)
+        GenPrime(temp, gp_->lambda());
 
-	r_.q_[gp_->l()] = temp;//Smallest q, last one
+	r_.q_[gp_->depth()] = temp;//Smallest q, last one
 
     if(gp_->hom_type() == she)
     {
-        GenPrime(temp, gp_->k());
-        while(temp%gp_->p() != 1)
-            GenPrime(temp, gp_->k());
+        GenPrime(temp, gp_->kappa());
+        while(temp%gp_->pi() != 1)
+            GenPrime(temp, gp_->kappa());
     }
 
-	for(int i=gp_->l()-1; i>=0; i--)
+	for(int i=gp_->depth()-1; i>=0; i--)
 		r_.q_[i] = (r_.q_[i+1])*temp;
 
     set_kappa(temp);
 
     // Helper polynomials for fast polynomial reduction
-    // Set reduction_helpers_ for yarkin and barrett reduction
+    // Set reduction_helpers_ for fast and barrett reduction
     // There is no helper poly for ntl reduction
-    if(gp_->reduc_type() == yarkin)
+    if(gp_->reduc_type() == fast)
     {
         int cnt = 0;
         ZZX mod = GetPolyModulus();
@@ -110,26 +120,34 @@ void LaSH::RingSetup()
         SetCoeff(reduction_helpers_[0], 2*n-1, 1);
         reduction_helpers_[0] /= mod;
     }
+#ifdef TIMING_INFO
+    homer_.Stop();
+    homer_.ShowTime("Ring Setup");
+#endif
 }
 void LaSH::KeySetup()
 {
-    if(gp_->hom_type() == fhe)
+#ifdef TIMING_INFO
+    homer_.Start();
+#endif // TIMING_INFO
+
+    if(gp_->hom_type() == lhe)
     {
         f_.SetLength(1);
-        int cnt = (gp_->k()*(gp_->l()+1));
-        cnt += gp_->w()-1;
-        cnt /= gp_->w();
+        int cnt = (gp_->kappa()*(gp_->depth()+1));
+        cnt += gp_->omega()-1;
+        cnt /= gp_->omega();
         ek_.SetLength(cnt);
 
         /*
-        fft_ek_.length_ = gp_->l();
+        fft_ek_.length_ = gp_->depth();
         fft_ek_.level_ = new FFTReps[fft_ek_.length_];
         */
     }
     else
     {
         ZZ total;
-        power(total, 2, gp_->l());
+        power(total, 2, gp_->depth());
         f_.SetLength(to_int(total));
     }
 
@@ -152,7 +170,7 @@ void LaSH::KeySetup()
     else
     {
         ZZ temp = to_ZZ(1);
-        temp = temp << gp_->w();    // 2^w
+        temp = temp << gp_->omega();    // 2^w
         ZZX msg = f_[0];
         for(int i=0; i<ek_.length(); i++)
         {
@@ -167,12 +185,20 @@ void LaSH::KeySetup()
         //    ComputeFFTek(i);
         //}
     }
+#ifdef TIMING_INFO
+    homer_.Stop();
+    homer_.ShowTime("Key Setup");
+#endif
 }
 
 void LaSH::ComputeFFTek(int level)
 {
+#ifdef TIMING_INFO
+    homer_.Start();
+#endif // TIMING_INFO
+
     int cnt = ek_.length();             // leftblocks or word_blocksize or num_add
-    int bits =  cnt * gp_->w();         // max_bitsize
+    int bits =  cnt * gp_->omega();         // max_bitsize
     //cout << bits << endl;
 
     fft_ek_.level_[level].block_cnt_ = cnt;
@@ -181,13 +207,13 @@ void LaSH::ComputeFFTek(int level)
     // How large of a prime do we need for an inner product?
     // Considering we will apply cnt number of mults
     // and cnt number of adds.
-    long bound =  NumBits(gp_->n()+1) + bits + gp_->w() + NumBits(cnt) + 3;
+    long bound =  NumBits(gp_->nu()+1) + bits + gp_->omega() + NumBits(cnt) + 3;
     ZZ temp_prime;
     set(temp_prime);
     long prime_cnt = GetPrimeNumber(bound, temp_prime);
     zz_p::FFTInit(0);
     fft_ek_.level_[level].rep_cnt_ = prime_cnt;
-    long k = NextPowerOfTwo(2*gp_->n()-1);
+    long k = NextPowerOfTwo(2*gp_->nu()-1);
 
 	for(int i=0; i<cnt; i++)
 	{
@@ -197,8 +223,12 @@ void LaSH::ComputeFFTek(int level)
             zz_p::FFTInit(j);
             fft_ek_.level_[level].rep_list_[i][j].SetSize(k);
         }
-        ComputeFFT(fft_ek_.level_[level].rep_list_[i], ek_[i], prime_cnt, gp_->n()-1);
+        ComputeFFT(fft_ek_.level_[level].rep_list_[i], ek_[i], prime_cnt, gp_->nu()-1);
     }
+#ifdef TIMING_INFO
+    homer_.Stop();
+    homer_.ShowTime("Eval Keys to FFT");
+#endif
 }
 
 void LaSH::Encrypt(CipherText &out, const ZZX &in)
@@ -207,6 +237,10 @@ void LaSH::Encrypt(CipherText &out, const ZZX &in)
 }
 void LaSH::Encrypt(CipherText &out, const ZZX &in, int index)
 {
+#ifdef TIMING_INFO
+    homer_.Start();
+#endif // TIMING_INFO
+
     out.set_fresh(true);
     out.set_level(index);
     out.set_multcnt(0);
@@ -214,39 +248,60 @@ void LaSH::Encrypt(CipherText &out, const ZZX &in, int index)
     ZZX temp;
     encrypt(temp, in, index);
     out.set_ct(temp);
+
+#ifdef TIMING_INFO
+    homer_.Stop();
+    homer_.ShowTime("Encrypt");
+#endif
 }
 void LaSH::Decrypt(ZZX &out, CipherText &in)
 {
+#ifdef TIMING_INFO
+    homer_.Start();
+#endif // TIMING_INFO
+
     in.coeff_reduce(r_.q_[in.level()]);
     if(!in.fresh())
         Refresh(in);
 
     decrypt(out, in.ct(), in.d(), in.multcnt(), in.level());
+#ifdef TIMING_INFO
+    homer_.Stop();
+    homer_.ShowTime("Decrypt");
+#endif
 }
 void LaSH::ModSwitch(CipherText &ct)
 {
-homer_.Start();
+#ifdef TIMING_DETAIL
+    homer_.Start();
+#endif // TIMING_DETAIL
+
     ZZX temp1, temp2;
     CoeffBalance(temp1, ct.ct(), r_.q_[ct.level()]);
     CoeffDivide(temp2, temp1, kappa_);
-    CoeffParityMatch(temp2, temp1, gp_->p());
+    CoeffParityMatch(temp2, temp1, gp_->pi());
 
     ct.set_level(ct.level()+1);
     CoeffReduce(temp2, temp2, r_.q_[ct.level()]);
     ct.set_ct(temp2);
 
-homer_.Stop();
-homer_.ShowTime("ModSwitch");
+#ifdef TIMING_DETAIL
+    homer_.Stop();
+    homer_.ShowTime("ModSwitch");
+#endif // TIMING_DETAIL
 }
 
 
 void LaSH::Relin(CipherText &c)
 {
-homer_.Start();
-    int cnt = ek_.length() - c.level()*(gp_->k()/gp_->w());
+#ifdef TIMING_DETAIL
+    homer_.Start();
+#endif // TIMING_DETAIL
+
+    int cnt = ek_.length() - c.level()*(gp_->kappa()/gp_->omega());
     vec_ZZX blocks;
     blocks.SetLength(cnt);
-    SeparateBlocks(blocks, c.ct(), gp_->w());
+    SeparateBlocks(blocks, c.ct(), gp_->omega());
     ZZX res;
     res = 0;
     for(int i=0; i<cnt; i++)
@@ -257,21 +312,26 @@ homer_.Start();
     PolyReduce(res, res, gp_->ring_type(), r_.poly_);
     CoeffReduce(res, res, r_.q_[c.level()]);
     c.set_ct(res);
-homer_.Stop();
-homer_.ShowTime("Relin");
+
+#ifdef TIMING_DETAIL
+    homer_.Stop();
+    homer_.ShowTime("Relin (no FFT)");
+#endif // TIMING_DETAIL
 }
 
 
 /*
 void LaSH::Relin(CipherText &c)
 {
-homer_.Start();
+#ifdef TIMING_DETAIL
+    homer_.Start();
+#endif // TIMING_DETAIL
 
     zz_pBak bak;
 	bak.save();
 	int prime_cnt = fft_ek_.level_[c.level()].rep_cnt_;
     int cnt = fft_ek_.level_[c.level()].block_cnt_;
-    long k = NextPowerOfTwo(2*gp_->n()-1);
+    long k = NextPowerOfTwo(2*gp_->nu()-1);
 
     fftRep *temp_rep = new fftRep[prime_cnt];
     fftRep *out_rep = new fftRep[prime_cnt];
@@ -282,11 +342,11 @@ homer_.Start();
 
     vec_ZZX blocks;
     blocks.SetLength(cnt);
-    SeparateBlocks(blocks, c.ct(), gp_->w());
+    SeparateBlocks(blocks, c.ct(), gp_->omega());
 
     for(int i=0; i<cnt; i++)
     {
-        ComputeFFT(temp_rep, blocks[i], prime_cnt, gp_->n()-1);
+        ComputeFFT(temp_rep, blocks[i], prime_cnt, gp_->nu()-1);
         for(int j=0; j<prime_cnt; j++)
         {
             zz_p::FFTInit(j);
@@ -300,10 +360,10 @@ homer_.Start();
     for(int i=0; i<prime_cnt; i++)
     {
 		zz_p::FFTInit(i);
-		FromfftRep(result_crt[i], out_rep[i], 0, 2*gp_->n()-2);
+		FromfftRep(result_crt[i], out_rep[i], 0, 2*gp_->nu()-2);
 	}
 	ZZX out;
-	FFTtoPoly(out, result_crt, prime_cnt, gp_->n());
+	FFTtoPoly(out, result_crt, prime_cnt, gp_->nu());
 	CoeffReduce(out, out, r_.q_[c.level()]);
 
 	delete[] temp_rep;
@@ -311,30 +371,36 @@ homer_.Start();
 
 	bak.restore();
 
-
-homer_.Stop();
-homer_.ShowTime("Relin");
+#ifdef TIMING_DETAIL
+    homer_.Stop();
+    homer_.ShowTime("Relin (FFT)");
+#endif // TIMING_DETAIL
 }
 */
 
 void LaSH::Refresh(CipherText &ct)
 {
-homer_.Start();
-    //ct.poly_reduce(gp_->ring_type(), r_.poly_);
+#ifdef TIMING_INFO
+    homer_.Start();
+#endif // TIMING_INFO
+
     PolyReduction(ct);
-    if(gp_->hom_type() == fhe)
+    if(gp_->hom_type() == lhe)
         Relin(ct);
     ModSwitch(ct);
     ct.set_fresh(true);
-homer_.Stop();
-homer_.ShowTime("Refresh");
+
+#ifdef TIMING_INFO
+    homer_.Stop();
+    homer_.ShowTime("Refresh");
+#endif
 }
 
 void LaSH::PolyReduction(ZZX &out, const ZZX &in, ReductionType type)
 {
-    if(type == yarkin)
+    if(type == fast)
     {
-        YarkinReduction(out, in, GetPolyModulus(), GetReductionHelpers());
+        fastReduction(out, in, GetPolyModulus(), GetReductionHelpers());
     }
     else if(type == barrett)
     {
@@ -351,13 +417,26 @@ void LaSH::PolyReduction(ZZX &out, const ZZX &in, ReductionType type)
 
 void LaSH::PolyReduction(CipherText &ct)
 {
+#ifdef TIMING_DETAIL
+    homer_.Start();
+#endif // TIMING_DETAIL
+
     ZZX temp = ct.ct();
     PolyReduction(temp, temp, gp_->reduc_type());
     ct.set_ct(temp);
+
+#ifdef TIMING_DETAIL
+    homer_.Stop();
+    homer_.ShowTime("Polynomial Reduction");
+#endif
 }
 
 void LaSH::Add(CipherText &out, CipherText &in1, CipherText &in2)
 {
+#ifdef TIMING_INFO
+    homer_.Start();
+#endif // TIMING_INFO
+
     if(!in1.fresh())
     {
         if(in2.fresh())
@@ -376,17 +455,24 @@ void LaSH::Add(CipherText &out, CipherText &in1, CipherText &in2)
 
     out.set_fresh(in1.fresh()&&in2.fresh());
 
+#ifdef TIMING_INFO
+    homer_.Stop();
+    homer_.ShowTime("Addition");
+#endif
 }
 
 
 void LaSH::Mult(CipherText &out, CipherText &in1, CipherText &in2)
 {
+#ifdef TIMING_INFO
+    homer_.Start();
+#endif // TIMING_INFO
+
     if(!in1.fresh())
         Refresh(in1);
     if(!in2.fresh())
         Refresh(in2);
 
-homer_.Start();
     out.set_level(in2.level());
     if(in1.level() > out.level())
         out.set_level(in1.level());
@@ -397,7 +483,7 @@ homer_.Start();
     CoeffReduce(temp, temp, r_.q_[out.level()]);
     out.set_ct(temp);
 
-    if(gp_->hom_type() == fhe)
+    if(gp_->hom_type() == lhe)
         out.set_multcnt(0);
     else
         out.set_multcnt(in1.multcnt() + in2.multcnt() + 1);
@@ -405,17 +491,28 @@ homer_.Start();
     out.set_fresh(false);
     out.set_d(in1.d()*in2.d());
 
-homer_.Stop();
-homer_.ShowTime("Mult Time");
+#ifdef TIMING_INFO
+    homer_.Stop();
+    homer_.ShowTime("Multiplication");
+#endif // TIMING_INFO
 }
 
 void LaSH::Div(CipherText &out, const CipherText &in, const ZZ &d)
 {
+#ifdef TIMING_INFO
+    homer_.Start();
+#endif // TIMING_INFO
+
     int level = in.level();
     ZZ temp = InvMod(d, r_.q_[level]);
     out = in * temp;
     out.coeff_reduce(r_.q_[level]);
     out.set_d(out.d()*d);
+
+#ifdef TIMING_INFO
+    homer_.Stop();
+    homer_.ShowTime("Constant Division");
+#endif
 }
 
 
@@ -442,51 +539,96 @@ CipherText& LaSH::Div(CipherText &in, const ZZ &d)
 
 void LaSH::Circuit_ZeroTest(CipherText &out, const CipherText &in)
 {
+#ifdef TIMING_INFO
+    homer_.Start();
+#endif // TIMING_INFO
 
+#ifdef TIMING_INFO
+    homer_.Stop();
+    homer_.ShowTime("Zero Test");
+#endif
 }
 void LaSH::Circuit_EqualityCheck(CipherText &out, const CipherText &in1, const CipherText &in2)
 {
+#ifdef TIMING_INFO
+    homer_.Start();
+#endif // TIMING_INFO
+
     out = in1 - in2;
     out.coeff_reduce(r_.q_[out.level()]);
     Circuit_ZeroTest(out, out);
+
+#ifdef TIMING_INFO
+    homer_.Stop();
+    homer_.ShowTime("Equality Check");
+#endif
 }
 //////////////
 //////////////
 
 void LaSH::FindSecretKey()
 {
-    RandPolyBalanced(f_[0], gp_->n(), gp_->b());
-    f_[0] *= gp_->p();
+#ifdef TIMING_DETAIL
+    homer_.Start();
+#endif // TIMING_DETAIL
+
+    RandPolyBalanced(f_[0], gp_->nu(), gp_->beta());
+    f_[0] *= gp_->pi();
     f_[0] += 1;
     CoeffReduce(f_[0], f_[0], r_.q_[0]);
+
+#ifdef TIMING_DETAIL
+    homer_.Stop();
+    homer_.ShowTime("Secret Key");
+#endif // TIMING_DETAIL
 }
 void LaSH::FindPublicKey(const ZZX &f_inv)
 {
-    RandPolyBalanced(h_, gp_->n(), gp_->b());
+#ifdef TIMING_DETAIL
+    homer_.Start();
+#endif // TIMING_DETAIL
+
+    RandPolyBalanced(h_, gp_->nu(), gp_->beta());
     h_ *= f_inv;
-    h_ *= gp_->p();
+    h_ *= gp_->pi();
     PolyCoeffReduce(h_, h_, gp_->ring_type(), r_.poly_, r_.q_[0]);
+#ifdef TIMING_DETAIL
+    homer_.Stop();
+    homer_.ShowTime("Public Key");
+#endif // TIMING_DETAIL
 }
 
 void LaSH::encrypt(ZZX &out, const ZZX &in, int index)
 {
-homer_.Start();
+#ifdef TIMING_DETAIL
+    homer_.Start();
+#endif // TIMING_DETAIL
+
     ZZX s, e;
-    RandPolyBalanced(s, gp_->n(), gp_->b());
-    RandPolyBalanced(e, gp_->n(), gp_->b());
+    RandPolyBalanced(s, gp_->nu(), gp_->beta());
+    RandPolyBalanced(e, gp_->nu(), gp_->beta());
     out = in;
-    out = out + h_*s + e*gp_->p();
+    out = out + h_*s + e*gp_->pi();
     PolyCoeffReduce(out, out, gp_->ring_type(), r_.poly_, r_.q_[index]);
-homer_.Stop();
-homer_.ShowTime("Encrypt");
+
+#ifdef TIMING_DETAIL
+    homer_.Stop();
+    homer_.ShowTime("encrypt");
+#endif // TIMING_DETAIL
 }
 void LaSH::decrypt(ZZX &out, const ZZX &in, const ZZ &divisor, int index, int level)
 {
-homer_.Start();
+#ifdef TIMING_DETAIL
+    homer_.Start();
+#endif // TIMING_DETAIL
+
     out = in * f_[index];
     PolyReduce(out, out, gp_->ring_type(), r_.poly_);
     CoeffBalance(out, out, r_.q_[level]);
-    CoeffReduce(out, out, to_ZZ(gp_->p())/divisor);
-homer_.Stop();
-homer_.ShowTime("Decrypt");
+    CoeffReduce(out, out, to_ZZ(gp_->pi())/divisor);
+
+#ifdef TIMING_DETAIL
+    homer_.Stop();
+    homer_.ShowTime("decrypt");
+#endif // TIMING_DETAIL
 }

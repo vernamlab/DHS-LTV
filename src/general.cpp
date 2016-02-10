@@ -1,119 +1,4 @@
 #include "general.h"
-/*
-typedef struct{
-    // Application Params
-    int p;      // plaintext space, 2 or 257?
-    int depth;
-
-    // Security Params
-    int k;      // cutting factor
-    int l;      // how many times we will cut?
-    int i;      // the last level q size
-	ZZ* q_list; // q[i] = k^i
-	ZZ B;       // noise bound, usually 1
-
-	// Ring Params
-	int m;  // cyc m
-	int n;  // cyc degree n = Phi(m)
-	int d;  // fact degree
-	int r;  // fact cnt n = d.r, slot count
-}GlobalParam;
-*/
-
-GlobalParams::GlobalParams()
-{
-    set_l(1);   // Circuit Level
-    set_hom_type(she);
-    set_reduc_type(yarkin);
-    Init(cyclotomic, off, 2, 257);
-}
-
-/*
-GlobalParams::GlobalParams()
-{
-
-}
-*/
-GlobalParams::GlobalParams(RingType type, BatchFlag flag, int p, int degree)
-{
-    Init(type, flag, p, degree);
-}
-void GlobalParams::Init(RingType type, BatchFlag flag, int p, int degree)
-{
-    set_ring_type(type);
-    set_batch_flag(flag);
-    if(type == xn_1)
-    {
-        set_n(degree);
-        if(flag == on)
-        {
-            set_d(1);
-            set_p(FindPrimeCongOne(n_));    // p = 1 mod n
-        }
-        else
-            set_p(p);
-    }
-    else if(type == cyclotomic)
-    {
-        if(flag == on)
-        {
-            if(p == 2)
-            {
-                set_m(degree);
-                set_d(ComputeFactorDegree(m_));
-            }
-            else
-            {
-                set_d(2);
-                set_m(p*p-1);   // m = p^2 - 1
-            }
-        }
-        else
-            set_m(degree);
-
-        set_n(EulerToient(m_));
-        set_p(p);
-    }
-
-    // Security Params
-    set_b(1);
-    set_k(22); // (w*2)*(l+1)
-
-    if(hom_type_ == fhe)
-        set_i(k_);
-    else
-        set_i(100);
-
-    //set_l(1);
-
-    if(flag == on)
-        set_r(n_/d_);
-    else
-        set_r(1);
-
-    set_w(5);   // How many bits of secret key will be encrypted
-}
-
-/*
-void FindQList(vec_ZZ &q_list, const GlobalParam *gp)
-{
-    q_list.SetLength(gp->l+1);
-	ZZ 	t, co;
-	GenPrime(t, gp->i);
-	while(t%gp->p != 1)
-        GenPrime(t, gp->i);
-
-	q_list[gp->l] = t;//Smallest q, last one
-
-    GenPrime(t, gp->k);
-    while(t%gp->p != 1)
-        GenPrime(t, gp->k);
-
-	for(int i=gp->l-1; i>=0; i--)
-		q_list[i] = q_list[i+1]*t;
-}
-*/
-
 
 /****************************************************************************************/
 /************************************ POLY OPERATIONS ***********************************/
@@ -254,7 +139,7 @@ void Div_high_low(ZZX &high, ZZX &low, ZZX &t, int low_deg, int high_deg)
 	for(int i=low_deg; i<high_deg+1; i++)
 		SetCoeff(high, i-low_deg, coeff(t, i));
 }
-void  YarkinReduction(ZZX &out, const ZZX &in, const ZZX &mod, const vec_ZZX &helpers)
+void  fastReduction(ZZX &out, const ZZX &in, const ZZX &mod, const vec_ZZX &helpers)
 {
     int low_deg, high_deg;
 	ZZX high, low, t;
@@ -273,7 +158,7 @@ void  YarkinReduction(ZZX &out, const ZZX &in, const ZZX &mod, const vec_ZZX &he
 	}
 	out = t % mod;
 }
-void YarkinReduction(ZZX &out, const ZZX &in, const ZZX &mod)
+void fastReduction(ZZX &out, const ZZX &in, const ZZX &mod)
 {
     int cnt = 0;
     int n = deg(mod);

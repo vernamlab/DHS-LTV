@@ -1,8 +1,8 @@
 #ifndef DEF_H_
 #define DEF_H_
 
-#define MANUAL_SETUP
-//#define AUTO_SETUP
+//#define MANUAL_SETUP
+#define AUTO_SETUP
 
 #define CYCLOTOMIC
 //#define XN_1
@@ -19,15 +19,18 @@
 
 //#define FFT
 //#define BATCH
+
 #define DEBUG_INFO
+#define DEBUG_PARAM_SETUP
+
 //#define TIMING_INFO                               // General setup timings
 //#define TIMING_DETAIL                             // Inner method timings
 
 
 // APPLICATION PARAMS
 #define PI                  1                                       // bit size of p : Message Space Z_p. p = 2^{pi}.
-#define CIRCUIT_DEPTH       1                                       // d : Circuit Depth
-#define BETA                1                                       // B : Initial Noise Bound, i.e. sample s,g,e,f' in CHI are all bounded by Beta.
+#define CIRCUIT_DEPTH       3                                       // d : Circuit Depth
+#define BETA                1                                       // bit size of B : Initial Noise Bound, i.e. sample s,g,e,f' in CHI are all bounded by 2^Beta.
 
 
 // NOISE PARAMS
@@ -65,5 +68,8 @@
                                                                     // 1.0066 achieves 80-bit security
                                                                     // Hermite Factor = pow(2, (log(q_{0})-4)/(4*N)) < 1.0066
 #endif // SECURE
+
+
+
 
 #endif // DEF_H_

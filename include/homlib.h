@@ -1,7 +1,7 @@
 #ifndef HOMLIB_H_
 #define HOMLIB_H_
 
-#include "general.h"
+//#include "general.h"
 #include "ciphertext.h"
 #include "params.h"
 

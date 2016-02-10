@@ -14,6 +14,7 @@
 using namespace std;
 NTL_CLIENT
 
+#define log2(x) (log(x*1.0)/log(2.0))
 //////////////////////////////////////////////////////////////////////////////////
 typedef enum SetupType
 {
@@ -113,8 +114,6 @@ int 	MobuisFunction(int n);
 int     FindPrimeCongOne(int mod);
 int     EulerToient(int in);
 int		ComputeFactorDegree(int m);
-
-
 
 //////////////////////////////////////////////////////////////////////////////////
 

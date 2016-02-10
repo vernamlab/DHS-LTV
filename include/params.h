@@ -63,7 +63,8 @@ class Params
             double          ComputeHermite();
             bool            CheckSecurity();
             bool            CheckNoiseGrowth();
-            void            ComputeInitialNoise();
+            //void            ComputeInitialNoise();
+            void            ComputeNoise(double &noise, double nu, double kappa, double tau, double omega, double adds, double err);
     protected:
     private:
             SetupType       setup_type_;

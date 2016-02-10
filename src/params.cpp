@@ -14,7 +14,8 @@ Params::Params()
     #endif // CIRCUIT_DEPTH
 
     #ifdef BETA
-        set_beta(BETA);                                  // Initial noise bound B
+        int b = pow(2, BETA);
+        set_beta(b);                                  // Initial noise bound B
     #endif // BETA
 
     // HOMO TYPE
@@ -49,6 +50,13 @@ Params::Params()
         set_reduc_type(ntl);
     #endif // NTL_REDUCTION
 
+    // Ring Type
+    #ifdef CYCLOTOMIC
+        set_ring_type(cyclotomic);
+    #elif defined XN_1
+        set_ring_type(xn_1);
+    #endif // CYCLOTOMIC
+
     // SETUP
     #ifdef MANUAL_SETUP
         set_setup_type(manual);
@@ -67,7 +75,6 @@ Params::Params()
         #endif // OMEGA
 
         #ifdef CYCLOTOMIC
-            set_ring_type(cyclotomic);
             #ifndef BATCH
                 set_mu(MU);
                 set_nu(EulerToient(MU));
@@ -83,7 +90,6 @@ Params::Params()
                 #endif // PI
             #endif // BATCH
         #else   //XN_1
-            set_ring_type(xn_1);
             set_nu(NU);
             #ifdef BATCH
                 set_theta(1);                           // T : Factor Degree. i.e. F(x) can be factored into a product of equal degree (13) polynomials
@@ -115,71 +121,97 @@ Params::Params()
 
 void Params::AutoSetup()
 {
-    int kappa = 20;
-    int sigma = kappa * (depth()+1);
-    int omega = kappa /(2*(depth()+1));
-    int nu = 4096;
+    #ifdef DEBUG_PARAM_SETUP
+        cout << endl << endl << "AUTO PARAM SETUP START" << endl<< endl;
+    #endif // DEBUG_PARAM_SETUP
 
-    double stdevs = 6.0;            // number of std devs; allows td times growth of noise reducing failure prob.
-    double adds = 1.0;             // max number of additions per level before multiplication
+    #ifdef SECURE
+        set_delta(DELTA);
+        int kappa = 20;
+        int sigma = kappa * (depth()+1);
+        int nu = pow(2,10);
 
+        bool found = false;
 
+        while(!found)
+        {
+            while(sigma > (log2(delta_)*4*nu) )
+                nu *= 2;
+            #ifdef DEBUG_PARAM_SETUP
+                cout << "Secure n : " << nu << endl;
+            #endif // DEBUG_PARAM_SETUP
 
-    /*
-    log2(x) = log(x*1.0)/log(2.0)
-    log(x,w) = log(x*1.0)/log(w)
+            // CheckNoiseGrowth with current kappa and nu
+            int omega = 1;//kappa /(2*(depth()+1));
+            int tau = (sigma+omega-1)/omega;
+            double err = 6.0;               // number of std devs; allows td times growth of noise reducing failure prob.
+            double adds = 1.0;              // max number of additions per level before multiplication
+            double noise[CIRCUIT_DEPTH];
+            noise[0] = beta_;
 
-p=2^52.0    KAPPA
-w = 2^1.0   OMEGA
+            ComputeNoise(noise[0], nu, kappa, tau, omega, adds, err);
+            for(int i=1; i<depth_; i++)
+            {
+                sigma -= kappa;
+                tau = (sigma+omega-1)/omega;
+                noise[i] = noise[i-1];
+                ComputeNoise(noise[i], nu, kappa, tau, omega, adds, err);
+            }
 
-BB=2.0      BETA        # initial noise bound of \chi_B
-nn=8192.0   NU       # dimension of lattice
-L  = 25    Depth         # number of levels - 1
-qq=p^(L+2)   Sigma      # our biggest (level 0) modulus (prime in LTV paper)   ---- sigma
-KK=1/p         # scalar factor for modulus reduction of cut bits
-tdd = 6.0          # number of std devs; allows td times growth of noise reducing failure prob.
-aa = 1.0            # max number of additions per level before multiplication
+            #ifdef DEBUG_PARAM_SETUP
+                cout << "Noise size after each level: ";
+            #endif // DEBUG_PARAM_SETUP
+            for(int i=0; i<depth_; i++)
+            {
+                noise[i] = log2(noise[i]);
 
+                #ifdef DEBUG_PARAM_SETUP
+                    cout << (int)noise[i] << " ";
+                #endif // DEBUG_PARAM_SETUP
+            }
+            #ifdef DEBUG_PARAM_SETUP
+                cout << endl;
+            #endif // PARAM_SETUP
 
-# small modulus p = SM
-SM = 2^16.0 PI
+            if(noise[depth_-1] - noise[0] < noise[0])
+                found = true;
+            else
+                kappa++;
 
-lq = log(qq,w)
-la = log2(aa)
+            sigma = kappa * (depth()+1);
+        }
 
+    #ifdef DEBUG_PARAM_SETUP
+        cout << endl << "AUTO PARAM SETUP END" << endl<< endl;
+    #endif // DEBUG_PARAM_SETUP
 
-print("\nDimension: n = %d" % nn)
-print("log(q) = %d" % log2(qq))
-print("Levels: L = %d\n\n" % L)
+        set_kappa(kappa);
+        set_lambda(kappa);
+        set_sigma(sigma);
+        #ifdef XN_1
+            set_nu(nu);
+        #elif defined CYCLOTOMIC
+            int mu = GenPrime_long(log2(nu));
+            set_mu(mu);
+            set_nu(EulerToient(mu));
+        #endif // XN_1
+        set_omega(kappa /(2*(depth()+1)));
+        set_tau((sigma+omega_-1)/omega_);
+        CheckSecurity();
 
-
-# Average case
-B0fa(n,q,K,B,mu)=mu*((sqrt(n)*aa*B^2+SM*n*B*w*((SM+1)*B+1)*lq)*K+sqrt(n)*SM*(SM*B+1))
-Bia(n,Bim,q,K,B,mu)=mu*((sqrt(n)*aa*Bim^2+SM*n*B*w*((SM+1)*B+1)*lq)*K+sqrt(n)*SM*(SM*B+1))
-
-
-# AVERAGE CASE COMPUTATION
-lq = log(qq,w)
-noisea = range(L+1)
-# iterate
-noisea[0]=B0fa(nn,qq, BB,KK,tdd)
-for i in range(L):
-    lq=lq-log(p,w)
-    noisea[i+1]= Bia(nn,noisea[i], qq, KK, BB,tdd)
-
-print [log2(x) for x in noisea]
-
-print "\n\n"
-    */
-
+    #endif // SECURE
 }
 
-void Params::ComputeInitialNoise(double n, double q, double k, double b, double td, double adds, double w)
+void Params::ComputeNoise(double &noise, double nu, double kappa, double tau, double omega, double adds, double err)
 {
-    double result = td*(adds*SqrRoot(n)*pow(b,2) + pi_*n*b*w)
+    noise = err*( (adds*SqrRoot(nu)*noise*noise + pi_*nu*beta_*pow(2, omega)*((pi_+1)*beta_+1)*tau)/(pow(2,kappa)) + SqrRoot(nu)*pi_*(pi_*beta_+1));
+}
+//void Params::ComputeNoise(double n, double q, double k, double b, double td, double adds, double w)
+//{
+//    double result = td*(adds*SqrRoot(n)*pow(b,2) + pi_*n*b*w*((pi_+1)*b+1)*q )
     // noisea[0]=B0fa(nn,qq, BB,KK,tdd)
     // B0fa(n,q,K,B,mu)=mu*( (sqrt(n)*aa*B^2 + SM*n*B*w*((SM+1)*B+1)*lq)*K + sqrt(n)*SM*(SM*B+1) )
-}
+//}
 
 double Params::ComputeHermite()
 {

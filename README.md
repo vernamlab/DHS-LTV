@@ -1,4 +1,4 @@
-# LaSH (Leveled and Somehat Homomorphic) Encryption Library
+# LaSH (Leveled and Somewhat Homomorphic) Encryption Library
 
 The library provides a homomorphic encryption scheme by Doroz, Hu and Sunar (DHS), along with several applications (coming soon). The details of the scheme can be seen in : https://eprint.iacr.org/2014/039.pdf. Our scheme is a single key variant of Lopez-Alt, Tromer and Vaikuntanathan (LTV) Homomorphic Encryption. The original construction can be found in : https://eprint.iacr.org/2013/094.pdf.
 

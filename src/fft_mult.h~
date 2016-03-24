@@ -1,9 +1,10 @@
 #ifndef FFT_MULT_H_
 #define FFT_MULT_H_
 
-#include "def.h"
+//#include "def.h"
 #include "general.h"
 #include <NTL/ZZ.h>
+#include <NTL/ZZX.h>
 #include <NTL/RR.h>
 #include <NTL/lzz_pX.h>
 #include <NTL/FFT.h>

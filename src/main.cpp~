@@ -24,7 +24,7 @@ int main(){
 	m = 1;
 
 	c = n.Prim_Encrypt(m, 0);
-	//Do 40 levels of multiplication using the same table without reducing the evaluation key to next level
+
 	for(int i=0; i<numLevel; i++){
 
 		c = c*c;
@@ -40,8 +40,7 @@ int main(){
 
 
 	c = n.Prim_Encrypt(m, 0);
-	//Do 40 levels of multiplication using the same table by reducing the evaluation keys at each level.
-	// Faster relinearization computation for each level but we spend time to reduce the evaluation keys to the next level.
+
 	for(int i=0; i<numLevel; i++){
 
 			c = c*c;

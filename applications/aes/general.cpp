@@ -28,6 +28,7 @@ ZZ euler_toient(ZZ x){
 		is = false;
 		t = NextPrime(t+1);
 	}
+	cout << "Phi of m is " << res << endl;
 	return res;
 }
 

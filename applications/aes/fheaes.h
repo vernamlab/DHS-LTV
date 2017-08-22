@@ -7,7 +7,7 @@ class FheAES{
 public:
 	FheAES();
 	void LTVKeySetUp();
-	void SetMessageBits(unsigned char *mess);
+	void SetMessageBits(unsigned char *mess);	// give message to Bits
 	void SetKeys();
 	void EncryptMessage();
 	void AESEncryption();

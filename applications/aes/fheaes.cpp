@@ -9,11 +9,11 @@ void FheAES::LTVKeySetUp(){
 	ZZ q 	= to_ZZ("2");
 	ZZ B 	= to_ZZ("1");
 	GlobalParam gp;
-	Set(gp, q, B, Modulus_M);
+	Set(gp, q, B, Modulus_M);	// set global parameters
 
-	n = new ltv(Modulus_M, Num_Primes, Max_Prime, 1, 16);
-	n->Func_SetModulus();
-	n->Func_ModulusFindRing(Num_Primes, Max_Prime, Dif_Prime, *n->Pointer_PolyModulus());
+	n = new ltv(Modulus_M, Num_Primes, Max_Prime, 1, 16);	// create a ltv class space and initialize
+	n->Func_SetModulus();	// set phi_m(x)
+	n->Func_ModulusFindRing(Num_Primes, Max_Prime, Dif_Prime, *n->Pointer_PolyModulus());	// set prime and q=p^i i=0-t-1
 	n->Func_ComputeKeysRingRelinFFT(Num_Primes, 1);
 	num_mul=0;
 	num_relin=0;

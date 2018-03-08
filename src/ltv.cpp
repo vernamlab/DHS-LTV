@@ -834,21 +834,14 @@ void RoundModP(ZZ& out, ZZ& in, ZZ& p1, ZZ& p2, ZZ& modp)
 
 	result = in  * p2 / p1;
 
-
 	tm0 = result%modp;
 	tm1 = in%modp;
 
 	if(result > 0){
-		if(tm0>tm1)
 			result = result + tm1 - tm0;
-		else if(tm0<tm1)
-			result = result - tm0 + tm1;
 	}
 	else{
-		if(tm0>tm1)
 			result = result + tm1 - tm0;
-		else if(tm0<tm1)
-			result = result - tm0 + tm1;
 	}
 //	cout << result << endl;
 	out = result;

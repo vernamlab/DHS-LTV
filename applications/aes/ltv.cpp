@@ -10,7 +10,9 @@ ltv::ltv(int dm, int num, int max_bit, int tableS, int wordSize){
 	p 			= gp.q;
 	B 			= gp.B;
 	N 			= gp.N_PolyDegree;
+	cout << "N_PolyDegree " << N << endl;
 	degree_m 	= gp.M_CycDegree;
+	cout << "CycDegree " << degree_m << endl;
 	rand_seed 	 = 0;
 	message_rand = 0;
 	reducsetflag = false;
@@ -64,7 +66,7 @@ ltv::ltv(ZZ my_p, ZZ my_B, int my_N, int dm, int num, int max_bit, int tableS, i
 	ZZ_p::init(p);
 
 	tableSize = tableS;
-	word_blocksize = NumofWords(max_bit);
+	word_blocksize = NumofWords(max_bit);	// maxprime/wordsize+1
 	max_bitsize = max_bit;
 	tableSize 	 = tableS;
 
@@ -257,9 +259,12 @@ ZZX ltv::Func_Sample(){
 	{
 		ZZ tp;
 		RandomBits(tp,to_long(B));
+		//cout << "RandomBits " << tp << " ";
 		if(rand()%2)SetCoeff(result,i, tp);
 		else SetCoeff(result,i, 0-tp);
 	}
+	//cout << endl;
+	//cout << "random result " << result << endl;
 	return result;
 }
 
@@ -270,6 +275,7 @@ void ltv::Func_ModulusFindRing(int num, int max_bit, int diff, ZZX modu){
 
 	GenPrime(t, diff);
 	co = t;
+	cout << "prime " << t << endl;
 	for(int i=0; i<num; i++){
 		q_list[num-1-i] = t;
 		t=t*co;
@@ -308,6 +314,7 @@ ZZX ltv::Func_CreateMessage(int size){
 
 void ltv::Func_SetModulus(){
 	modulus = ComputeFastCycModulus(degree_m);
+	cout << "modulus " << modulus << endl;
 }
 
 void ltv::Func_ComputeKeysRingRelinFFT(int num, int tblsize){

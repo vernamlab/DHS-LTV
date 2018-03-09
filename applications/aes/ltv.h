@@ -34,7 +34,7 @@ public:
 ////// Some Useful Functions
 		ZZX 	Func_Sample();													// Create Sample poly with B-bound
 		ZZX 	Func_CreateMessage(int size);									// Create Random Message
-		void 	Func_SetModulus();												// Set Modulus
+		void 	Func_SetModulus();												// Set Modulus phi_m(x)
 		void   	Func_ModulusFindRing(int num, int max_bit, int diff, ZZX modu);	// Compute modulus
 		void	Func_ComputeKeysRingRelinFFT(int num, int tblsize);				// Compute Eval keys in FFT form
 //////	Arithmetic Operations
